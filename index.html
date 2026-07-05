@@ -37,7 +37,7 @@ var ADMIN_SUBS = ['admin', 'superadmin', 'sevako-admin'];
 async function route() {
   // 1. SuperAdmin — no Supabase lookup needed
   if (sub && ADMIN_SUBS.indexOf(sub) >= 0) {
-    window.location.replace('/sevako-superadmin.html');
+    window.location.replace('/sevako-pos/sevako-superadmin.html');
     return;
   }
 
@@ -71,10 +71,10 @@ async function route() {
 
     // Route based on pos_type stored in Supabase — NO hardcoding needed
     if (tenant.pos_type === 'salon') {
-      window.location.replace('/sevako-salon-pos.html');
+      window.location.replace('/sevako-pos/sevako-salon-pos.html');
     } else {
       // retail or any other type → retail POS
-      window.location.replace('/sevako-retail-pos.html');
+      window.location.replace('/sevako-pos/sevako-retail-pos.html');
     }
 
   } catch(e) {
@@ -98,9 +98,9 @@ function showSelector() {
   document.getElementById('msg').textContent = 'Select an app';
   document.getElementById('box').innerHTML +=
     '<div style="margin-top:28px;">'
-    + '<a class="appbtn" href="/sevako-retail-pos.html" style="background:#f0a500;color:#000;">🛒 Retail POS</a>'
-    + '<a class="appbtn" href="/sevako-salon-pos.html"  style="background:#c8753a;color:#fff;">💆 Salon POS</a>'
-    + '<a class="appbtn" href="/sevako-superadmin.html" style="background:#1e1e1e;color:#f0ede8;border:1px solid #3a3a3a;">⚙️ SuperAdmin</a>'
+    + '<a class="appbtn" href="/sevako-pos/sevako-retail-pos.html" style="background:#f0a500;color:#000;">🛒 Retail POS</a>'
+    + '<a class="appbtn" href="/sevako-pos/sevako-salon-pos.html"  style="background:#c8753a;color:#fff;">💆 Salon POS</a>'
+    + '<a class="appbtn" href="/sevako-pos/sevako-superadmin.html" style="background:#1e1e1e;color:#f0ede8;border:1px solid #3a3a3a;">⚙️ SuperAdmin</a>'
     + '</div>';
 }
 
