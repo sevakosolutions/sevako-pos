@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sevako POS</title>
+<style>
+  body{margin:0;background:#0d0d0d;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'DM Sans',sans-serif;}
+  .loader{text-align:center;color:#f0ede8;padding:20px;}
+  .logo{font-size:32px;font-weight:700;letter-spacing:-1px;margin-bottom:8px;}
+  .logo span{color:#f0a500;}
+  .sub{font-size:11px;color:#6e6a63;letter-spacing:3px;text-transform:uppercase;}
+  .spinner{width:32px;height:32px;border:3px solid #2e2e2e;border-top-color:#f0a500;border-radius:50%;animation:spin .8s linear infinite;margin:24px auto 0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .err{margin-top:20px;font-size:13px;color:#ef4444;background:rgba(239,68,68,.1);padding:12px 20px;border-radius:8px;border:1px solid rgba(239,68,68,.2);}
+  .appbtn{display:block;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<div class="loader" id="box">
+  <div class="logo">Sevako<span>.</span></div>
+  <div class="sub" id="msg">Detecting your workspace…</div>
+  <div class="spinner" id="spin"></div>
+</div>
+
+<script>
+var SB_URL = 'https://bzhejvfktcsbyzeljbyp.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6aGVqdmZrdGNzYnl6ZWxqYnlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NDA2ODcsImV4cCI6MjA5NjMxNjY4N30.Dhs54_jt9c717IF7CROZ6fd7Bzo3SYOhS82zLYRKQns';
+
+var host  = window.location.hostname;
+var parts = host.split('.');
+var sub   = parts.length >= 3 ? parts[0] : null;
+
+// SuperAdmin subdomains — always fixed
+var ADMIN_SUBS = ['admin', 'superadmin', 'sevako-admin'];
+
+async function route() {
+  // 1. SuperAdmin — no Supabase lookup needed
+  if (sub && ADMIN_SUBS.indexOf(sub) >= 0) {
+    window.location.replace('/sevako-pos/sevako-superadmin.html');
+    return;
+  }
+
+  // 2. No subdomain — direct GitHub Pages access, show manual selector
+  if (!sub || parts.length < 3) {
+    showSelector();
+    return;
+  }
+
+  // 3. Known subdomain — look up tenant in Supabase to get pos_type
+  setMsg('Loading ' + sub + '…');
+  try {
+    var url = SB_URL + '/rest/v1/tenants?subdomain=eq.' + sub
+            + '&select=pos_type,is_active&limit=1&apikey=' + SB_KEY;
+    var r = await fetch(url, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    var data = await r.json();
+
+    if (!data || !data.length) {
+      showError('No tenant found for "' + sub + '".<br>Please contact Sevako support.');
+      return;
+    }
+
+    var tenant = data[0];
+
+    if (!tenant.is_active) {
+      showError('This account is inactive.<br>Contact <a href="mailto:mysevako@gmail.com" style="color:#f0a500;">mysevako@gmail.com</a>');
+      return;
+    }
+
+    // Route based on pos_type stored in Supabase — NO hardcoding needed
+    if (tenant.pos_type === 'salon') {
+      window.location.replace('/sevako-pos/sevako-salon-pos.html');
+    } else {
+      // retail or any other type → retail POS
+      window.location.replace('/sevako-pos/sevako-retail-pos.html');
+    }
+
+  } catch(e) {
+    showError('Connection error. Please check your internet and try again.');
+  }
+}
+
+function setMsg(txt) {
+  document.getElementById('msg').textContent = txt;
+}
+
+function showError(html) {
+  document.getElementById('spin').style.display = 'none';
+  document.getElementById('msg').textContent = 'Something went wrong';
+  document.getElementById('box').innerHTML +=
+    '<div class="err">' + html + '</div>';
+}
+
+function showSelector() {
+  document.getElementById('spin').style.display = 'none';
+  document.getElementById('msg').textContent = 'Select an app';
+  document.getElementById('box').innerHTML +=
+    '<div style="margin-top:28px;">'
+    + '<a class="appbtn" href="/sevako-pos/sevako-retail-pos.html" style="background:#f0a500;color:#000;">🛒 Retail POS</a>'
+    + '<a class="appbtn" href="/sevako-pos/sevako-salon-pos.html"  style="background:#c8753a;color:#fff;">💆 Salon POS</a>'
+    + '<a class="appbtn" href="/sevako-pos/sevako-superadmin.html" style="background:#1e1e1e;color:#f0ede8;border:1px solid #3a3a3a;">⚙️ SuperAdmin</a>'
+    + '</div>';
+}
+
+route();
+</script>
+</body>
+</html>
