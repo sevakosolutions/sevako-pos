@@ -35,6 +35,12 @@ var sub   = parts.length >= 3 ? parts[0] : null;
 var ADMIN_SUBS = ['admin', 'superadmin', 'sevako-admin'];
 
 async function route() {
+  // 0. On GitHub Pages directly — show manual selector, skip tenant lookup
+  if (host.indexOf('github.io') >= 0 || host.indexOf('localhost') >= 0 || parts.length < 3) {
+    showSelector();
+    return;
+  }
+
   // 1. SuperAdmin — no Supabase lookup needed
   if (sub && ADMIN_SUBS.indexOf(sub) >= 0) {
     window.location.replace('sevako-superadmin.html');
